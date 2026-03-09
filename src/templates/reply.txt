@@ -1,4 +1,4 @@
-🤖 **Automated Triage Assistant**
+🤖 **SLM Triage Assistant**
 
 Hi @{author}! Thanks for taking the time to contribute to the project.
 

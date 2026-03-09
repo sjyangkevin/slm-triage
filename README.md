@@ -1,10 +1,33 @@
 # SLM Triage
 
-A GitHub Action that automatically triages incoming Issues and Pull Requests by running a small local LLM to score submissions against your project's contribution guidelines.
+A GitHub Action that automatically triages incoming Issues and Pull Requests by running a small local LLM to evaluate submissions against your project's contribution guidelines.
 
-## Why?
+## The Problem
 
-Open-source maintainers are increasingly overwhelmed by low-quality, AI-generated issues and PRs that look polished on the surface but don't follow project guidelines. SLM Triage fights AI with AI — running a Small Language Model **locally on the GitHub runner** (no API keys, no costs) to evaluate each submission against your project's own guidelines.
+Open-source maintainers face a growing flood of low-quality, AI-generated issues and pull requests — commonly called **"AI-slop."** These submissions are polished on the surface but fall apart under review: they hallucinate APIs, ignore contribution guidelines, and add no real value. The effect is a **DDoS on human attention**.
+
+The scale is staggering. In 2025, the curl project reported that [only ~5% of bug bounty submissions were genuine vulnerabilities](https://daniel.haxx.se/blog/2025/07/14/death-by-a-thousand-slops/), with roughly 20% being AI-generated slop — ultimately [forcing the project to shut down its bug bounty program entirely](https://github.com/curl/curl/pull/20312). Node.js had to [raise their HackerOne signal requirements](https://nodejs.org/en/blog/announcements/hackerone-signal-requirement) after receiving over 30 slop reports during a single holiday period. OCaml maintainers rejected a 13,000-line AI-generated PR, noting that reviewing AI code is more taxing than reviewing human code. Projects like Tldraw have temporarily paused external contributions altogether.
+
+The [OpenSSF](https://github.com/ossf/wg-vulnerability-disclosures/issues/178) and [community](https://www.reddit.com/r/opensource/comments/1q3f89b/open_source_is_being_ddosed_by_ai_slop_and_github/) are actively discussing the problem and the needs to handle these submissions because the text and code are technically "valid." Detection today still relies largely on maintainer efforts.
+
+## Why a Small Language Model?
+
+Identifying AI-slop requires **semantic understanding**: does this submission actually follow the project's guidelines, or does it just *look* like it does? Large cloud-hosted LLMs can do this, but they introduce real problems for open-source triage:
+
+| Concern | Cloud LLM | SLM (Local) |
+|---|---|---|
+| **Cost** | Per-token API fees on *every* issue/PR | Free — runs on the GitHub runner |
+| **Privacy** | Sends PRs and guidelines to a third-party | Everything stays on the runner |
+| **Capability** | Overkill for checklist-style evaluation | Right-sized for scoring and classification |
+| **Infrastructure** | Requires API keys and billing setup | Zero configuration beyond the action |
+
+**SLM Triage** uses [Ollama](https://ollama.com) to run a Small Language Model directly on the GitHub Actions runner. The default model, [Phi-3 mini](https://ollama.com/library/phi3) (3.8B parameters, ~2.3GB download), fits comfortably on standard GitHub-hosted runners (2-core CPU, 8GB RAM — [free for public repositories](https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories)). Triage prompts, a guidelines file plus an issue or PR body, are typically well within the model's context window, making this a task where a small, efficient model can be good enough.
+
+## Trade-offs
+
+- **Runner time:** Local inference on CPU adds roughly 1–3 minutes per run. Model weights are cached between runs to avoid redundant downloads.
+- **False positives:** SLMs can misinterpret nuance. The default behavior is to *label and comment* rather than close, keeping a human in the loop for final decisions.
+- **Depth of reasoning:** SLMs excel at procedural checks (test files included? issue template filled out?) but are not suited for deep architectural review.
 
 ## Quick Start
 
@@ -35,7 +58,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-Then create an `AGENTS.md` file **in your repository** with your contribution guidelines. The action will automatically fetch and use it as the scoring criteria.
+By default, the action reads your contribution guidelines from an `AGENTS.md` file in the root of your repository. Create this file with your project's contribution rules — the LLM will score each submission against them. You can change the file path with the `guidelines-file` input.
 
 ## Inputs
 

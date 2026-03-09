@@ -105,7 +105,7 @@ def test_triage_acts_if_low_score(mock_action):
 def test_triage_custom_actions(mock_action):
     """If configured, the action can perform different steps, like closing the issue."""
     # Override configured actions
-    mock_action.actions = ["close", "draft", "unknown_action"]
+    mock_action.actions = ["close", "unknown_action"]
 
     # Setup low-quality Issue payload
     mock_action._load_event_payload.return_value = {

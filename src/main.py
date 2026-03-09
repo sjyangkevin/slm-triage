@@ -116,11 +116,6 @@ class TriageAction:
                 self.github.add_label(self.repository, number, self.review_label)
             elif action == "close":
                 self.github.close_issue(self.repository, number)
-            elif action == "draft":
-                if is_pr:
-                    log.warning("Converting a PR to draft via REST API is currently not supported. Skipping.")
-                else:
-                    log.warning("Cannot convert an issue to draft. Skipping.")
             else:
                 log.warning("Unknown action configured: '%s'. Skipping.", action)
 
