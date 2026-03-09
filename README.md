@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/logo.svg" height="60" alt="SLM Triage Logo" />
+  <img src="assets/logo.svg" width="300" alt="SLM Triage Logo" />
 </div>
 
 # SLM Triage

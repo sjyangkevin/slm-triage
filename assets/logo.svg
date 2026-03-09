@@ -1,22 +1,45 @@
-<svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+<svg width="490" height="140" viewBox="0 0 490 140" xmlns="http://www.w3.org/2000/svg">
   <style>
-    .text {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-      font-weight: 800;
-      font-size: 34px;
-      letter-spacing: -1.5px;
+    .foreground {
+      fill: #24292f;
     }
-    .text-slm { fill: #24292f; }
-    .text-triage { fill: #57606a; }
+    .text {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 72px;
+      font-weight: 800;
+      letter-spacing: -2.5px;
+    }
     
     @media (prefers-color-scheme: dark) {
-      .text-slm { fill: #ffffff; }
-      .text-triage { fill: #aaaaaa; }
+      .foreground {
+        fill: #f0f6fc;
+      }
     }
   </style>
 
-  <text x="10" y="42" class="text" font-style="italic">
-    <tspan class="text-slm">SLM</tspan>
-    <tspan class="text-triage" dx="4">Triage</tspan>
-  </text>
+  <!-- Message / Chat Box Icon -->
+  <g transform="translate(15, 25)" class="foreground">
+    <!-- Chat bubble outline with a spark/star (SLM intelligence) inside -->
+    <path d="M 12 10 
+             C 4 10, 0 14, 0 22 
+             L 0 74 
+             C 0 82, 4 86, 12 86 
+             L 30 86 
+             L 42 102 
+             L 54 86 
+             L 76 86 
+             C 84 86, 88 82, 88 74 
+             L 88 22 
+             C 88 14, 84 10, 76 10 
+             Z
+             M 44 26
+             C 44 38, 32 38, 32 38
+             C 32 38, 44 38, 44 50
+             C 44 38, 56 38, 56 38
+             C 56 38, 44 38, 44 26
+             Z" />
+  </g>
+
+  <!-- Title Text -->
+  <text x="120" y="104" class="text foreground">SLM Triage</text>
 </svg>
