@@ -54,8 +54,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-By default, the action reads your contribution guidelines from an `AGENTS.md` file in the root of your repository. Create this file with your project's contribution rules — the LLM will score each submission against them. You can change the file path with the `guidelines-file` input.
-
 ## Inputs
 
 | Input | Description | Default |
