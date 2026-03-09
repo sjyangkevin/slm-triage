@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from llm import LLMError
 from main import TriageAction
 
 
@@ -37,9 +38,51 @@ def mock_action(mock_env):
 
 def test_missing_env_vars_exits(mock_action):
     """If core env vars are missing, the action exits."""
-    mock_action.github_token = ""
+    mock_action.event_path = ""
     with pytest.raises(SystemExit) as exc_info:
         mock_action.run()
+    assert exc_info.value.code == 1
+
+
+def test_issue_triage_runs_without_token_in_read_only_mode(mock_action):
+    """A token is not required to score an issue when no write action runs."""
+    mock_action.github_token = ""
+    mock_action._load_event_payload.return_value = {
+        "issue": {
+            "number": 7,
+            "title": "Closed issue",
+            "body": "Still useful for triage tests.",
+            "user": {"login": "reporter"},
+        }
+    }
+    mock_action.github.fetch_guidelines.return_value = "Guideline text"
+    mock_action.llm.ask.return_value = {"score": 4, "reason": "Enough detail."}
+
+    result = mock_action.run()
+
+    assert result["event_type"] == "issue"
+    assert result["score"] == 4
+    mock_action.github.post_comment.assert_not_called()
+    mock_action.github.add_label.assert_not_called()
+
+
+def test_triage_exits_if_llm_is_unreachable(mock_action):
+    """The action should fail loudly when the local LLM is unavailable."""
+    mock_action._load_event_payload.return_value = {
+        "issue": {
+            "number": 8,
+            "title": "Issue",
+            "body": "Body",
+            "user": {"login": "reporter"},
+        }
+    }
+    mock_action.github.fetch_guidelines.return_value = "Guideline text"
+    mock_action.prompt_builder.build_triage_prompt.return_value = "Rendered prompt"
+    mock_action.llm.ask.side_effect = LLMError("local llm unavailable")
+
+    with pytest.raises(SystemExit) as exc_info:
+        mock_action.run()
+
     assert exc_info.value.code == 1
 
 
@@ -55,9 +98,12 @@ def test_triage_skips_if_high_score(mock_action):
         }
     }
     mock_action.github.fetch_guidelines.return_value = "Guideline text"
-    mock_action.github.fetch_pr_files.return_value = ["src/main.py", "tests/test_main.py"]
+    mock_action.github.fetch_pr_files.return_value = [
+        "src/main.py",
+        "tests/test_main.py",
+    ]
     mock_action.prompt_builder.build_triage_prompt.return_value = "Rendered prompt"
-    
+
     # LLM returns a "passing" score (3 > threshold 2)
     mock_action.llm.ask.return_value = {"score": 4, "reason": "Looks great."}
 
@@ -82,7 +128,7 @@ def test_triage_acts_if_low_score(mock_action):
     }
     mock_action.github.fetch_guidelines.return_value = "Guideline text"
     mock_action.github.fetch_pr_files.return_value = ["src/main.py"]
-    
+
     # LLM returns a "failing" score (1 <= threshold 2)
     mock_action.llm.ask.return_value = {"score": 1, "reason": "No description."}
     mock_action.prompt_builder.build_reply_message.return_value = "mocked reply body"
@@ -117,7 +163,7 @@ def test_triage_custom_actions(mock_action):
         }
     }
     mock_action.github.fetch_guidelines.return_value = "Guideline text"
-    
+
     # LLM returns a "failing" score
     mock_action.llm.ask.return_value = {"score": 1, "reason": "Spam."}
 

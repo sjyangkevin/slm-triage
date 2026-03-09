@@ -113,9 +113,4 @@ class PromptBuilder:
         """Assemble the submission metadata block."""
         info = f"Author: {author}\nTitle: {title}\nDescription:\n{body}"
 
-        if event_type == "pull_request" and file_count is not None:
-            info += f"\n\nThis is a Pull Request that modifies {file_count} files."
-            if has_tests is not None:
-                info += f"\nIncludes test file changes: {'YES' if has_tests else 'NO'}"
-
         return info

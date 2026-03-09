@@ -5,7 +5,7 @@ import os
 import sys
 
 from github_client import GitHubClient
-from llm import OllamaClient
+from llm import LLMError, OllamaClient
 from prompt import PromptBuilder
 
 logging.basicConfig(
@@ -23,7 +23,7 @@ class TriageAction:
     depending on the presence of ``TEST_PR`` / ``TEST_ISSUE``.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, *, dry_run: bool = False) -> None:
         # Core GitHub Actions environment variables.
         self.github_token = os.environ.get("GITHUB_TOKEN", "")
         self.event_path = os.environ.get("GITHUB_EVENT_PATH", "")
@@ -33,9 +33,7 @@ class TriageAction:
         self.guidelines_file = os.environ.get("INPUT_GUIDELINES_FILE", "AGENTS.md")
         self.test_file_pattern = os.environ.get("INPUT_TEST_FILE_PATTERN", "test_*")
         self.score_threshold = int(os.environ.get("INPUT_SCORE_THRESHOLD", "2"))
-        self.review_label = os.environ.get(
-            "INPUT_REVIEW_LABEL", "needs-details"
-        )
+        self.review_label = os.environ.get("INPUT_REVIEW_LABEL", "needs-details")
         actions_str = os.environ.get("INPUT_ACTIONS", "comment,label")
         self.actions = [a.strip().lower() for a in actions_str.split(",") if a.strip()]
 
@@ -46,10 +44,11 @@ class TriageAction:
             base_url=os.environ.get("OLLAMA_URL", "http://localhost:11434"),
         )
         self.prompt_builder = PromptBuilder()
+        self.dry_run = dry_run
 
-    def run(self) -> None:
+    def run(self) -> dict:
         """Execute full triage: fetch → score → act."""
-        if not self.github_token or not self.event_path or not self.repository:
+        if not self.event_path or not self.repository:
             log.error("Missing required environment variables.")
             sys.exit(1)
 
@@ -86,7 +85,11 @@ class TriageAction:
             file_count=file_count,
         )
         log.info("Sending prompt to local LLM (%s)…", self.llm.model)
-        result = self.llm.ask(prompt)
+        try:
+            result = self.llm.ask(prompt)
+        except LLMError as exc:
+            log.error("%s", exc)
+            sys.exit(1)
 
         score = int(result["score"])
         reason = result["reason"]
@@ -94,6 +97,14 @@ class TriageAction:
 
         if score <= self.score_threshold:
             self._apply_actions(number, author, score, reason, is_pr=is_pr)
+
+        return {
+            "number": number,
+            "event_type": "pull_request" if is_pr else "issue",
+            "score": score,
+            "reason": reason,
+            "would_apply_actions": score <= self.score_threshold,
+        }
 
     def _apply_actions(
         self, number: int, author: str, score: int, reason: str, *, is_pr: bool
@@ -105,10 +116,19 @@ class TriageAction:
             self.score_threshold,
             self.actions,
         )
+
+        if self.dry_run:
+            log.info("[DRY RUN] Would apply actions: %s", self.actions)
+            return
+
+        if not self.github_token:
+            log.error("GITHUB_TOKEN is required to apply GitHub actions.")
+            sys.exit(1)
+
         msg = self.prompt_builder.build_reply_message(
             author=author, reason=reason, score=score
         )
-        
+
         for action in self.actions:
             if action == "comment":
                 self.github.post_comment(self.repository, number, msg)

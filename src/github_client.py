@@ -20,9 +20,10 @@ class GitHubClient:
     def __init__(self, token: str) -> None:
         self._token = token
         self._headers = {
-            "Authorization": f"Bearer {token}",
             "Accept": "application/vnd.github.v3+json",
         }
+        if token:
+            self._headers["Authorization"] = f"Bearer {token}"
 
     def fetch_guidelines(self, repo: str, filepath: str) -> str:
         """Fetch raw file content from a repository.
@@ -130,3 +131,22 @@ class GitHubClient:
         )
         resp.raise_for_status()
         log.info("Closed #%d.", number)
+
+    def fetch_issue(self, repo: str, number: int) -> dict:
+        """Fetch issue or pull request data by number.
+
+        Args:
+            repo: Repository in ``owner/name`` format.
+            number: Issue or pull request number.
+
+        Returns:
+            A dict containing at least ``title``, ``body``, ``user``,
+            and ``pull_request`` (if the item is a PR).
+
+        Reference:
+            https://docs.github.com/en/rest/issues/issues#get-an-issue
+        """
+        url = f"{self.API_BASE}/repos/{repo}/issues/{number}"
+        resp = requests.get(url, headers=self._headers, timeout=30)
+        resp.raise_for_status()
+        return resp.json()
