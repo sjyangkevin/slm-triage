@@ -1,14 +1,10 @@
 # SLM Triage
 
-A GitHub Action that automatically triages incoming Issues and Pull Requests by running a small local LLM to evaluate submissions against your project's contribution guidelines.
+A GitHub Action that triages incoming Issues and Pull Requests by running a small local LLM to evaluate submissions against your project's `AGENTS.md` — contribution guidelines designed for identifying [AI-generated slop](https://github.com/ossf/wg-vulnerability-disclosures/issues/178).
 
 ## The Problem
 
-Open-source maintainers face a growing flood of low-quality, AI-generated issues and pull requests — commonly called **"AI-slop."** These submissions are polished on the surface but fall apart under review: they hallucinate APIs, ignore contribution guidelines, and add no real value. The effect is a **DDoS on human attention**.
-
-The scale is staggering. In 2025, the curl project reported that [only ~5% of bug bounty submissions were genuine vulnerabilities](https://daniel.haxx.se/blog/2025/07/14/death-by-a-thousand-slops/), with roughly 20% being AI-generated slop — ultimately [forcing the project to shut down its bug bounty program entirely](https://github.com/curl/curl/pull/20312). Node.js had to [raise their HackerOne signal requirements](https://nodejs.org/en/blog/announcements/hackerone-signal-requirement) after receiving over 30 slop reports during a single holiday period. OCaml maintainers rejected a 13,000-line AI-generated PR, noting that reviewing AI code is more taxing than reviewing human code. Projects like Tldraw have temporarily paused external contributions altogether.
-
-The [OpenSSF](https://github.com/ossf/wg-vulnerability-disclosures/issues/178) and [community](https://www.reddit.com/r/opensource/comments/1q3f89b/open_source_is_being_ddosed_by_ai_slop_and_github/) are actively discussing the problem and the needs to handle these submissions because the text and code are technically "valid." Detection today still relies largely on maintainer efforts.
+Open-source maintainers face a growing flood of low-quality, AI-generated issues and pull requests — commonly called **"AI-slop."** These submissions are polished on the surface but fall apart under review: they may hallucinate APIs, ignore contribution guidelines, and add no real value. The effect is a [DDoS on human attention](https://www.reddit.com/r/opensource/comments/1q3f89b/open_source_is_being_ddosed_by_ai_slop_and_github/). Projects like [curl](https://daniel.haxx.se/blog/2025/07/14/death-by-a-thousand-slops/), [Node.js](https://nodejs.org/en/blog/announcements/hackerone-signal-requirement), and others have already been forced to change their contribution policies in response. The [OpenSSF](https://github.com/ossf/wg-vulnerability-disclosures/issues/178) is actively discussing practices for maintainers, but tooling to automatically detect these submissions remains limited.
 
 ## Why a Small Language Model?
 
