@@ -4,7 +4,7 @@ A GitHub Action that triages incoming Issues and Pull Requests by running a smal
 
 ## The Problem
 
-Open-source maintainers face a growing flood of low-quality, AI-generated issues and pull requests — commonly called **"AI-slop."** These submissions are polished on the surface but fall apart under review: they may hallucinate APIs, ignore contribution guidelines, and add no real value. The effect is a [DDoS on human attention](https://www.reddit.com/r/opensource/comments/1q3f89b/open_source_is_being_ddosed_by_ai_slop_and_github/). Projects like [curl](https://daniel.haxx.se/blog/2025/07/14/death-by-a-thousand-slops/), [Node.js](https://nodejs.org/en/blog/announcements/hackerone-signal-requirement), and others have already been forced to change their contribution policies in response. The [OpenSSF](https://github.com/ossf/wg-vulnerability-disclosures/issues/178) is actively discussing practices for maintainers, but tooling to automatically detect these submissions remains limited.
+Open-source maintainers face a growing flood of low-quality, AI-generated issues and pull requests — commonly called **"AI-slop."** These submissions are polished on the surface but fall apart under review: they may hallucinate APIs, ignore contribution guidelines, and add no real value. The effect is a [DDoS on human attention](https://www.reddit.com/r/opensource/comments/1q3f89b/open_source_is_being_ddosed_by_ai_slop_and_github/). Projects like [curl](https://daniel.haxx.se/blog/2025/07/14/death-by-a-thousand-slops/), [Node.js](https://nodejs.org/en/blog/announcements/hackerone-signal-requirement), and others have already been forced to change their contribution policies in response.
 
 ## Why a Small Language Model?
 
