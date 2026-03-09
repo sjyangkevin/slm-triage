@@ -2,9 +2,9 @@ name: Test SLM Triage Action
 
 on:
   issues:
-    types: [opened]
+    types: [opened, reopened]
   pull_request:
-    types: [opened]
+    types: [opened, reopened]
 
 jobs:
   triage:
