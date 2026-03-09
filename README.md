@@ -4,7 +4,7 @@ A GitHub Action that triages incoming Issues and Pull Requests by running a smal
 
 ## The Problem
 
-Open-source maintainers face a growing flood of low-quality, AI-generated issues and pull requests — commonly called **"AI-slop."** These submissions are polished on the surface but fall apart under review: they may hallucinate APIs, ignore contribution guidelines, and add no real value. The effect is a [DDoS on human attention](https://www.reddit.com/r/opensource/comments/1q3f89b/open_source_is_being_ddosed_by_ai_slop_and_github/). Projects like [curl](https://daniel.haxx.se/blog/2025/07/14/death-by-a-thousand-slops/), [Node.js](https://nodejs.org/en/blog/announcements/hackerone-signal-requirement), and others have already been forced to change their contribution policies in response.
+Open-source maintainers face a growing flood of low-quality, AI-generated issues and pull requests, commonly called **"AI-slop."** These submissions are polished on the surface but fall apart under review: they may hallucinate APIs, ignore contribution guidelines, and add no real value. The effect is a [DDoS on human attention](https://www.reddit.com/r/opensource/comments/1q3f89b/open_source_is_being_ddosed_by_ai_slop_and_github/). Projects like [curl](https://daniel.haxx.se/blog/2025/07/14/death-by-a-thousand-slops/), [Node.js](https://nodejs.org/en/blog/announcements/hackerone-signal-requirement), and others have already been forced to change their contribution policies in response.
 
 ## Why a Small Language Model?
 
@@ -12,12 +12,12 @@ Identifying AI-slop requires **semantic understanding**: does this submission ac
 
 | Concern | Cloud LLM | SLM (Local) |
 |---|---|---|
-| **Cost** | Per-token API fees on *every* issue/PR | Free — runs on the GitHub runner |
+| **Cost** | Per-token API fees on *every* issue/PR | Free, runs on the GitHub runner |
 | **Privacy** | Sends PRs and guidelines to a third-party | Everything stays on the runner |
 | **Capability** | Overkill for checklist-style evaluation | Right-sized for scoring and classification |
 | **Infrastructure** | Requires API keys and billing setup | Zero configuration beyond the action |
 
-**SLM Triage** uses [Ollama](https://ollama.com) to run a Small Language Model directly on the GitHub Actions runner. The default model, [Phi-3 mini](https://ollama.com/library/phi3) (3.8B parameters, ~2.3GB download), fits comfortably on standard GitHub-hosted runners (2-core CPU, 8GB RAM — [free for public repositories](https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories)). Triage prompts, a guidelines file plus an issue or PR body, are typically well within the model's context window, making this a task where a small, efficient model can be good enough.
+**SLM Triage** uses [Ollama](https://ollama.com) to run a Small Language Model directly on the GitHub Actions runner. The default model, [Phi-3 mini](https://ollama.com/library/phi3) (3.8B parameters, ~2.3GB download), fits comfortably on standard GitHub-hosted runners with a 2-core CPU and 8GB RAM, which are [free for public repositories](https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories). A typical triage prompt consists of a guidelines file and an issue or PR body, which is well within the model's context window. This makes triage a task where a small, efficient model can be good enough.
 
 ## Trade-offs
 
@@ -58,7 +58,7 @@ jobs:
 
 | Input | Description | Default |
 | --- | --- | --- |
-| `github-token` | **Required.** GitHub token for API calls. | — |
+| `github-token` | **Required.** GitHub token for API calls. | - |
 | `ollama-model` | Ollama model for inference. | `phi3` |
 | `guidelines-file` | Path to the guidelines file **in your repository**. | `AGENTS.md` |
 | `test-file-pattern` | Glob to detect test files (language-agnostic). | `test_*` |
@@ -103,4 +103,4 @@ jobs:
 
 ## License
 
-Apache License 2.0 — see [LICENSE](LICENSE) for details.
+Apache License 2.0. See [LICENSE](LICENSE) for details.
