@@ -1,6 +1,6 @@
 # SLM Triage
 
-A GitHub Action that triages incoming Issues and Pull Requests by running a small local LLM to evaluate submissions against your project's `AGENTS.md` — contribution guidelines designed for identifying [AI-generated slop](https://github.com/ossf/wg-vulnerability-disclosures/issues/178).
+A GitHub Action that triages incoming Issues and Pull Requests by running a small local LLM to evaluate submissions against your project's `AGENTS.md`, to help identify [AI-generated slop](https://github.com/ossf/wg-vulnerability-disclosures/issues/178).
 
 ## The Problem
 
