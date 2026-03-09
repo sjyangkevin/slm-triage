@@ -44,7 +44,7 @@ runs:
 
     - name: Install Python dependencies
       shell: bash
-      run: uv pip install --system -r ${{ github.action_path }}/requirements.txt
+      run: uv pip install --system ${{ github.action_path }}
 
     - name: Install Ollama
       shell: bash
@@ -85,5 +85,6 @@ runs:
         INPUT_GUIDELINES_FILE: ${{ inputs.guidelines-file }}
         INPUT_TEST_FILE_PATTERN: ${{ inputs.test-file-pattern }}
         INPUT_SCORE_THRESHOLD: ${{ inputs.score-threshold }}
-        INPUT_LOW_QUALITY_LABEL: ${{ inputs.low-quality-label }}
+        INPUT_REVIEW_LABEL: ${{ inputs.review-label }}
+        INPUT_ACTIONS: ${{ inputs.actions }}
       run: python ${{ github.action_path }}/src/main.py

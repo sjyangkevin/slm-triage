@@ -21,8 +21,3 @@ jobs:
         uses: ./
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          # ollama-model: phi3
-          # guidelines-file: AGENTS.md
-          # test-file-pattern: "test_*"
-          # score-threshold: 2
-          # low-quality-label: needs-review/low-quality
