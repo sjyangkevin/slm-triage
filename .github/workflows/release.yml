@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  update-major-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update major version tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Extract version from the release tag (e.g. "v1.2.3")
+          VERSION=${GITHUB_REF#refs/tags/}
+
+          # Extract the major version (e.g. "v1")
+          MAJOR=${VERSION%%.*}
+
+          echo "Release tag: $VERSION"
+          echo "Major tag:   $MAJOR"
+
+          # Configure git so we can push tags
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Move the major version tag to point at this release
+          git tag -fa "$MAJOR" -m "Update $MAJOR to $VERSION"
+          git push origin "$MAJOR" --force
+
+          echo "✅ Moved $MAJOR → $VERSION"
