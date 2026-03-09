@@ -1,0 +1,27 @@
+name: Test SLM Triage Action
+
+on:
+  issues:
+    types: [opened]
+  pull_request:
+    types: [opened]
+
+jobs:
+  triage:
+    runs-on: ubuntu-24.04
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Triage Assistant
+        uses: ./
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # ollama-model: phi3
+          # guidelines-file: AGENTS.md
+          # test-file-pattern: "test_*"
+          # score-threshold: 2
+          # low-quality-label: needs-review/low-quality

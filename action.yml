@@ -1,0 +1,86 @@
+name: 'SLM Triage'
+description: >
+  Automatically triage incoming Issues and Pull Requests by running a small
+  local LLM (via Ollama) that scores submissions against your project's
+  contribution guidelines.
+author: 'Kevin Yang'
+
+branding:
+  icon: 'shield'
+  color: 'purple'
+
+inputs:
+  github-token:
+    description: 'GitHub token for API calls (issues/PRs read + write).'
+    required: true
+  ollama-model:
+    description: 'Ollama model to use for inference.'
+    default: 'phi3'
+  guidelines-file:
+    description: 'Path to the contribution guidelines file in your repository.'
+    default: 'AGENTS.md'
+  test-file-pattern:
+    description: 'Glob pattern to detect test files.'
+    default: 'test_*'
+  score-threshold:
+    description: 'Score at or below which the action comments and labels (1-5).'
+    default: '2'
+  low-quality-label:
+    description: 'Label to apply to low-scoring submissions.'
+    default: 'low-quality'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install Python dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r ${{ github.action_path }}/requirements.txt
+
+    - name: Install Ollama
+      shell: bash
+      run: curl -fsSL https://ollama.com/install.sh | sh
+
+    - name: Cache Ollama model
+      id: cache-model
+      uses: actions/cache@v4
+      with:
+        path: ~/.ollama/models
+        key: ollama-${{ inputs.ollama-model }}
+
+    - name: Start Ollama server
+      shell: bash
+      run: |
+        ollama serve &
+        for i in $(seq 1 30); do
+          if curl -sf http://localhost:11434/api/tags > /dev/null 2>&1; then
+            echo "Ollama server is ready."
+            break
+          fi
+          echo "Waiting for Ollama server... ($i/30)"
+          sleep 1
+        done
+
+    - name: Pull LLM model
+      if: steps.cache-model.outputs.cache-hit != 'true'
+      shell: bash
+      run: ollama pull ${{ inputs.ollama-model }}
+
+    - name: Run triage
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GITHUB_EVENT_PATH: ${{ github.event_path }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        OLLAMA_MODEL: ${{ inputs.ollama-model }}
+        INPUT_GUIDELINES_FILE: ${{ inputs.guidelines-file }}
+        INPUT_TEST_FILE_PATTERN: ${{ inputs.test-file-pattern }}
+        INPUT_SCORE_THRESHOLD: ${{ inputs.score-threshold }}
+        INPUT_LOW_QUALITY_LABEL: ${{ inputs.low-quality-label }}
+      run: python ${{ github.action_path }}/src/main.py
