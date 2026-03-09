@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="assets/logo.svg" height="60" alt="SLM Triage Logo" />
+</div>
+
 # SLM Triage
 
 [![CI](https://github.com/sjyangkevin/slm-triage/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sjyangkevin/slm-triage/actions/workflows/ci.yml)
