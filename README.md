@@ -1,5 +1,8 @@
 # SLM Triage
 
+[![CI](https://github.com/sjyangkevin/slm-triage/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sjyangkevin/slm-triage/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/sjyangkevin/slm-triage/graph/badge.svg)](https://codecov.io/gh/sjyangkevin/slm-triage)
+
 A GitHub Action that triages incoming Issues and Pull Requests by running a small local LLM to evaluate submissions against your project's `AGENTS.md`, to help identify [AI-generated slop](https://github.com/ossf/wg-vulnerability-disclosures/issues/178).
 
 ## The Problem

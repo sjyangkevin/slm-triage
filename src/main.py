@@ -93,9 +93,9 @@ class TriageAction:
         log.info("Score: %d/5 — %s", score, reason)
 
         if score <= self.score_threshold:
-            self._handle_low_score(number, author, score, reason, is_pr=is_pr)
+            self._apply_actions(number, author, score, reason, is_pr=is_pr)
 
-    def _handle_low_score(
+    def _apply_actions(
         self, number: int, author: str, score: int, reason: str, *, is_pr: bool
     ) -> None:
         """Apply configured actions to a submission that needs more details."""
