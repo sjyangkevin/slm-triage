@@ -1,55 +1,83 @@
-"""Local LLM interaction via Ollama for the AI Triage Assistant."""
-
-import json
 import logging
 
 import requests
+from pydantic import BaseModel, Field
 
 log = logging.getLogger("triage.llm")
 
-DEFAULT_URL = "http://localhost:11434"
-DEFAULT_MODEL = "phi3"
+
+class TriageResult(BaseModel):
+    """The structured output expected from the LLM."""
+
+    score: int = Field(
+        ...,
+        description="A quality score from 1 to 5.",
+        ge=1,
+        le=5,
+    )
+    reason: str = Field(
+        ...,
+        description="A short explanation of why this score was given (1-3 sentences).",
+    )
 
 
-def ask(
-    prompt: str,
-    model: str = DEFAULT_MODEL,
-    base_url: str = DEFAULT_URL,
-) -> dict:
-    """Send *prompt* to the local Ollama instance and return a parsed result.
+class OllamaClient:
+    """Client for the local Ollama REST API.
 
-    Returns a dict with ``"score"`` (int 1-5) and ``"reason"`` (str).
-    Falls back gracefully if the model does not return valid JSON.
+    Send prompts to a locally running Ollama server and parse the
+    response into a structured ``TriageResult`` object.
+
+    Args:
+        model: Ollama model tag (e.g. ``"phi3"``).
+        base_url: Base URL of the running Ollama server.
     """
-    url = f"{base_url}/api/generate"
-    payload = {"model": model, "prompt": prompt, "stream": False}
 
-    try:
-        resp = requests.post(url, json=payload, timeout=300)
-        resp.raise_for_status()
-        raw = resp.json().get("response", "").strip()
-    except requests.exceptions.RequestException as exc:
-        log.error("Failed to reach local LLM: %s", exc)
-        return {"score": 3, "reason": "Could not reach LLM engine."}
+    DEFAULT_MODEL = "phi3"
+    DEFAULT_URL = "http://localhost:11434"
 
-    log.info("Raw LLM response:\n%s", raw)
-    return _parse_response(raw)
+    def __init__(
+        self,
+        model: str = DEFAULT_MODEL,
+        base_url: str = DEFAULT_URL,
+    ) -> None:
+        self.model = model
+        self.base_url = base_url
 
+    def ask(self, prompt: str) -> dict:
+        """Send a prompt to Ollama and return a parsed result.
 
-def _parse_response(raw: str) -> dict:
-    """Try JSON first, then fall back to first-digit extraction."""
-    # Strip markdown fences if the model wraps output in ```json ... ```
-    cleaned = raw.strip("`").removeprefix("json").strip()
-    try:
-        result = json.loads(cleaned)
-        if "score" in result and "reason" in result:
-            return result
-    except json.JSONDecodeError:
-        pass
+        Uses Ollama's native structured outputs feature by passing the
+        Pydantic JSON schema to the ``format`` parameter. This enforces
+        that the model output strictly follows the required schema.
 
-    log.warning("LLM did not return valid JSON. Attempting fallback parsing.")
-    for ch in raw:
-        if ch.isdigit() and 1 <= int(ch) <= 5:
-            return {"score": int(ch), "reason": raw}
+        Args:
+            prompt: The full prompt string to send.
 
-    return {"score": 3, "reason": raw}
+        Returns:
+            A dict with keys ``"score"`` and ``"reason"``.
+        """
+        url = f"{self.base_url}/api/generate"
+        payload = {
+            "model": self.model,
+            "prompt": prompt,
+            "stream": False,
+            "format": TriageResult.model_json_schema(),
+            "options": {"temperature": 0.0},
+        }
+
+        try:
+            resp = requests.post(url, json=payload, timeout=300)
+            resp.raise_for_status()
+            raw = resp.json().get("response", "").strip()
+        except requests.exceptions.RequestException as exc:
+            log.error("Failed to reach local LLM: %s", exc)
+            return {"score": 3, "reason": "Could not reach LLM engine."}
+
+        log.info("Raw LLM response:\n%s", raw)
+
+        try:
+            # The output uses the Pydantic schema, so it is guaranteed to parse.
+            return TriageResult.model_validate_json(raw).model_dump()
+        except Exception as exc:
+            log.error("Failed to parse validated JSON from LLM: %s", exc)
+            return {"score": 3, "reason": "Failed to parse LLM structured output."}

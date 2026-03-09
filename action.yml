@@ -1,8 +1,7 @@
 name: 'SLM Triage'
 description: >
-  Automatically triage incoming Issues and Pull Requests by running a small
-  local LLM (via Ollama) that scores submissions against your project's
-  contribution guidelines.
+  Triage incoming Issues and Pull Requests by running a small local LLM
+  that scores submissions against your project's contribution guidelines.
 author: 'Kevin Yang'
 
 branding:
@@ -11,7 +10,7 @@ branding:
 
 inputs:
   github-token:
-    description: 'GitHub token for API calls (issues/PRs read + write).'
+    description: 'GitHub token for API calls.'
     required: true
   ollama-model:
     description: 'Ollama model to use for inference.'
@@ -25,9 +24,12 @@ inputs:
   score-threshold:
     description: 'Score at or below which the action comments and labels (1-5).'
     default: '2'
-  low-quality-label:
-    description: 'Label to apply to low-scoring submissions.'
-    default: 'low-quality'
+  review-label:
+    description: 'Label to apply to submissions that need more information.'
+    default: 'needs-details'
+  actions:
+    description: 'Comma-separated list of actions to take (e.g., "comment,label,close").'
+    default: 'comment,label'
 
 runs:
   using: 'composite'
@@ -37,11 +39,12 @@ runs:
       with:
         python-version: '3.11'
 
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+
     - name: Install Python dependencies
       shell: bash
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r ${{ github.action_path }}/requirements.txt
+      run: uv pip install --system -r ${{ github.action_path }}/requirements.txt
 
     - name: Install Ollama
       shell: bash

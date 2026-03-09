@@ -46,7 +46,8 @@ Then create an `AGENTS.md` file **in your repository** with your contribution gu
 | `guidelines-file` | Path to the guidelines file **in your repository**. | `AGENTS.md` |
 | `test-file-pattern` | Glob to detect test files (language-agnostic). | `test_*` |
 | `score-threshold` | Score at or below which the action acts. | `2` |
-| `low-quality-label` | Label applied to low-scoring submissions. | `needs-review/low-quality` |
+| `actions`         | Comma-separated list of actions (`comment`,`label`,`close`). | `comment,label` |
+| `review-label` | Label applied to submissions that need more info. | `needs-details` |
 
 ## How It Works
 
