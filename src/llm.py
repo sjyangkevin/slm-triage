@@ -5,12 +5,16 @@ from typing import Literal, Optional
 
 import requests
 from pydantic import BaseModel, Field
+from tenacity import retry, retry_if_exception_type, stop_after_attempt
 
 log = logging.getLogger("triage.llm")
 
 
 class LLMError(RuntimeError):
     """Raised when the local LLM cannot be reached or returns invalid output."""
+
+class LLMParsingError(LLMError):
+    """Raised specifically when the LLM output cannot bear parsed into the expected JSON schema."""
 
 
 class TriageResult(BaseModel):
@@ -51,6 +55,11 @@ class OllamaClient:
         self.base_url = base_url
         self.think = think
 
+    @retry(
+        stop=stop_after_attempt(5),
+        retry=retry_if_exception_type(LLMParsingError),
+        reraise=True,
+    )
     def ask(self, prompt: str) -> dict:
         """Send a prompt to Ollama and return a parsed result.
 
@@ -104,7 +113,7 @@ class OllamaClient:
                 name,
             )
         else:
-            raise LLMError(
+            raise LLMParsingError(
                 "Failed to parse LLM structured output after retries. "
                 f"Last raw output: {raw}"
             )
