@@ -7,10 +7,11 @@ For Issues, evaluate the content by looking at the following aspects. Be reasona
 2. Reproducibility: How to reproduce the issue (e.g. package version, system OS, code snippets, screenshots). A good issue provides helpful clues; however, if the issue is straightforward, exhaustive details are not strictly required.
 3. PR and Triage Status: Is there any PR open while the issue still needs triage? Look for tags like `needs-triage` or PR links. If it's pending triage but has a PR, it may need more context.
 4. Context & Details: The description should provide enough overall context to be actionable for a maintainer.
+5. Meta Issues and Task Lists: Maintainers often open "meta issues" or issues consisting of "task lists" to track progress on an epic or organize sub-tasks. These issues may naturally lack reproduction steps or extensive details, but they are used for project management. If the issue appears to be a meta tracking issue or a structured task list, it should be ok.
 
 Decision rules for Issues:
-- Pass if: The issue meets at least half of the above criteria.
-- Needs Details if: The issue does not meet half of the criteria. Request more details.
+- Pass if: The issue appears to be a meta tracking issue or task list, OR if it meets at least half of the above criteria.
+- Needs Details if: The issue is a standard bug/feature report and does not meet half of the criteria. Request more details.
 === END CRITERIA ===
 
 === SUBMISSION ===

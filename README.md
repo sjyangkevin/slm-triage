@@ -7,7 +7,7 @@
 [![CI](https://github.com/sjyangkevin/slm-triage/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sjyangkevin/slm-triage/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/sjyangkevin/slm-triage/graph/badge.svg)](https://codecov.io/gh/sjyangkevin/slm-triage)
 
-A GitHub Action that runs a small LLM to triage incoming issues and pull requests, helping maintainers identify low-quality submissions or [AI-generated slop](https://github.com/ossf/wg-vulnerability-disclosures/issues/178).
+A GitHub Action that runs a small LLM to triage incoming issues and PRs, helping maintainers identify potential [AI-generated slop](https://github.com/ossf/wg-vulnerability-disclosures/issues/178).
 
 ## The Problem
 
