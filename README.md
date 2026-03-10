@@ -97,6 +97,9 @@ uv run scripts/simulate_triage.py <owner>/<repo> <issue-number> --model qwen3.5:
 ## Examples
 
 **Example Issue Triage Output**:
+
+An example of an automated comment, label, and close actions issued by the SLM Triage workflow:
+
 <div align="center">
   <img src="assets/tests/actions_on_test_issue.png" width="600" alt="Example Triage Comment" />
 </div>
@@ -105,14 +108,14 @@ uv run scripts/simulate_triage.py <owner>/<repo> <issue-number> --model qwen3.5:
 
 **Default Configuration**:
 ```yaml
-- uses: your-username/slm-triage@v1
+- uses: sjyangkevin/slm-triage@v1
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 **Aggressive Auto-Close Configuration**
 ```yaml
-- uses: your-username/slm-triage@v1
+- uses: sjyangkevin/slm-triage@v1
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
     ollama-model: "deepseek-r1:1.5b"
