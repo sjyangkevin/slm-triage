@@ -17,29 +17,6 @@
     }
   </style>
 
-  <!-- Message / Chat Box Icon -->
-  <g transform="translate(15, 25)" class="foreground">
-    <!-- Chat bubble outline with a spark/star (SLM intelligence) inside -->
-    <path d="M 12 10 
-             C 4 10, 0 14, 0 22 
-             L 0 74 
-             C 0 82, 4 86, 12 86 
-             L 30 86 
-             L 42 102 
-             L 54 86 
-             L 76 86 
-             C 84 86, 88 82, 88 74 
-             L 88 22 
-             C 88 14, 84 10, 76 10 
-             Z
-             M 44 26
-             C 44 38, 32 38, 32 38
-             C 32 38, 44 38, 44 50
-             C 44 38, 56 38, 56 38
-             C 56 38, 44 38, 44 26
-             Z" />
-  </g>
-
   <!-- Title Text -->
-  <text x="120" y="104" class="text foreground">SLM Triage</text>
+  <text x="35" y="104" class="text foreground">SLM Triage</text>
 </svg>
