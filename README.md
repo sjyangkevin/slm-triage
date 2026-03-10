@@ -101,7 +101,7 @@ uv run scripts/simulate_triage.py apache/airflow 51059 --model qwen3.5:2b --thin
     github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-**Aggressive Auto-Close Configuration** (with DeepSeek logic enabled):
+**Aggressive Auto-Close Configuration**
 ```yaml
 - uses: your-username/slm-triage@v1
   with:
