@@ -94,6 +94,11 @@ uv run scripts/simulate_triage.py apache/airflow 51059 --model qwen3.5:2b --thin
 
 ## Examples
 
+**Example Issue Triage Output**:
+<div align="center">
+  <img src="assets/tests/actions_on_test_issue.png" width="600" alt="Example Triage Comment" />
+</div>
+
 **Default Configuration**:
 ```yaml
 - uses: your-username/slm-triage@v1
