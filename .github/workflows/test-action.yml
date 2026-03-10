@@ -7,7 +7,7 @@ on:
     types: [opened, reopened]
 
 jobs:
-  triage:
+  slm-triage:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -21,3 +21,4 @@ jobs:
         uses: ./
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          actions: "comment,label,close"
