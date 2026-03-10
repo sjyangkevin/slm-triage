@@ -14,16 +14,10 @@ inputs:
     required: true
   ollama-model:
     description: 'Ollama model to use for inference.'
-    default: 'phi3'
-  guidelines-file:
-    description: 'Path to the contribution guidelines file in your repository.'
-    default: 'AGENTS.md'
-  test-file-pattern:
-    description: 'Glob pattern to detect test files.'
-    default: 'test_*'
-  score-threshold:
-    description: 'Score at or below which the action comments and labels (1-5).'
-    default: '2'
+    default: 'qwen3.5:2b'
+  ollama-think:
+    description: 'Set to "true" if the model natively supports reasoning outputs (e.g. qwen3.5:2b).'
+    default: 'true'
   review-label:
     description: 'Label to apply to submissions that need more information.'
     default: 'needs-details'
@@ -82,9 +76,7 @@ runs:
         GITHUB_EVENT_PATH: ${{ github.event_path }}
         GITHUB_REPOSITORY: ${{ github.repository }}
         OLLAMA_MODEL: ${{ inputs.ollama-model }}
-        INPUT_GUIDELINES_FILE: ${{ inputs.guidelines-file }}
-        INPUT_TEST_FILE_PATTERN: ${{ inputs.test-file-pattern }}
-        INPUT_SCORE_THRESHOLD: ${{ inputs.score-threshold }}
+        OLLAMA_THINK: ${{ inputs.ollama-think }}
         INPUT_REVIEW_LABEL: ${{ inputs.review-label }}
         INPUT_ACTIONS: ${{ inputs.actions }}
       run: python ${{ github.action_path }}/src/main.py

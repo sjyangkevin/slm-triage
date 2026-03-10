@@ -16,7 +16,6 @@ def mock_env():
         "GITHUB_TOKEN": "dummy_token",
         "GITHUB_EVENT_PATH": "/tmp/mock_event.json",
         "GITHUB_REPOSITORY": "octocat/Hello-World",
-        "INPUT_SCORE_THRESHOLD": "2",
         "INPUT_REVIEW_LABEL": "needs-details",
     }
     with patch.dict(os.environ, env_vars):
@@ -55,13 +54,12 @@ def test_issue_triage_runs_without_token_in_read_only_mode(mock_action):
             "user": {"login": "reporter"},
         }
     }
-    mock_action.github.fetch_guidelines.return_value = "Guideline text"
-    mock_action.llm.ask.return_value = {"score": 4, "reason": "Enough detail."}
+    mock_action.llm.ask.return_value = {"result": "Pass", "reason": "Enough detail."}
 
     result = mock_action.run()
 
     assert result["event_type"] == "issue"
-    assert result["score"] == 4
+    assert result["result"] == "Pass"
     mock_action.github.post_comment.assert_not_called()
     mock_action.github.add_label.assert_not_called()
 
@@ -76,7 +74,6 @@ def test_triage_exits_if_llm_is_unreachable(mock_action):
             "user": {"login": "reporter"},
         }
     }
-    mock_action.github.fetch_guidelines.return_value = "Guideline text"
     mock_action.prompt_builder.build_triage_prompt.return_value = "Rendered prompt"
     mock_action.llm.ask.side_effect = LLMError("local llm unavailable")
 
@@ -97,15 +94,10 @@ def test_triage_skips_if_high_score(mock_action):
             "user": {"login": "good_user"},
         }
     }
-    mock_action.github.fetch_guidelines.return_value = "Guideline text"
-    mock_action.github.fetch_pr_files.return_value = [
-        "src/main.py",
-        "tests/test_main.py",
-    ]
     mock_action.prompt_builder.build_triage_prompt.return_value = "Rendered prompt"
 
-    # LLM returns a "passing" score (3 > threshold 2)
-    mock_action.llm.ask.return_value = {"score": 4, "reason": "Looks great."}
+    # LLM returns a "passing" score
+    mock_action.llm.ask.return_value = {"result": "Pass", "reason": "Looks great."}
 
     # Run the triage action
     mock_action.run()
@@ -126,11 +118,11 @@ def test_triage_acts_if_low_score(mock_action):
             "user": {"login": "lazy_user"},
         }
     }
-    mock_action.github.fetch_guidelines.return_value = "Guideline text"
-    mock_action.github.fetch_pr_files.return_value = ["src/main.py"]
-
-    # LLM returns a "failing" score (1 <= threshold 2)
-    mock_action.llm.ask.return_value = {"score": 1, "reason": "No description."}
+    # LLM returns a "failing" score
+    mock_action.llm.ask.return_value = {
+        "result": "Needs Details",
+        "reason": "No description.",
+    }
     mock_action.prompt_builder.build_reply_message.return_value = "mocked reply body"
 
     # Run the triage action
@@ -138,7 +130,7 @@ def test_triage_acts_if_low_score(mock_action):
 
     # Verify action taken
     mock_action.prompt_builder.build_reply_message.assert_called_once_with(
-        author="lazy_user", reason="No description.", score=1
+        author="lazy_user", reason="No description.", result="Needs Details"
     )
     mock_action.github.post_comment.assert_called_once_with(
         "octocat/Hello-World", 99, "mocked reply body"
@@ -162,10 +154,8 @@ def test_triage_custom_actions(mock_action):
             "user": {"login": "spammer"},
         }
     }
-    mock_action.github.fetch_guidelines.return_value = "Guideline text"
-
     # LLM returns a "failing" score
-    mock_action.llm.ask.return_value = {"score": 1, "reason": "Spam."}
+    mock_action.llm.ask.return_value = {"result": "Needs Details", "reason": "Spam."}
 
     # Run triage
     mock_action.run()

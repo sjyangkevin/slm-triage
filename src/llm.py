@@ -1,7 +1,7 @@
 import json
 import logging
 import re
-from typing import Optional
+from typing import Literal, Optional
 
 import requests
 from pydantic import BaseModel, Field
@@ -16,11 +16,9 @@ class LLMError(RuntimeError):
 class TriageResult(BaseModel):
     """The structured output expected from the LLM."""
 
-    score: int = Field(
+    result: Literal["Pass", "Needs Details"] = Field(
         ...,
-        description="A quality score from 1 to 5.",
-        ge=1,
-        le=5,
+        description='The evaluation result, either "Pass" or "Needs Details".',
     )
     reason: str = Field(
         ...,
@@ -47,9 +45,11 @@ class OllamaClient:
         self,
         model: str = DEFAULT_MODEL,
         base_url: str = DEFAULT_URL,
+        think: bool = False,
     ) -> None:
         self.model = model
         self.base_url = base_url
+        self.think = think
 
     def ask(self, prompt: str) -> dict:
         """Send a prompt to Ollama and return a parsed result.
@@ -62,7 +62,7 @@ class OllamaClient:
             prompt: The full prompt string to send.
 
         Returns:
-            A dict with keys ``"score"`` and ``"reason"``.
+            A dict with keys ``"result"`` and ``"reason"``.
         """
         url = f"{self.base_url}/api/generate"
         schema = TriageResult.model_json_schema()
@@ -71,8 +71,8 @@ class OllamaClient:
         base_payload = {
             "model": self.model,
             "stream": False,
-            "think": False,
-            "options": {"temperature": 0.0},
+            "think": self.think,
+            "options": {"temperature": 0.2},
         }
 
         strategies = [
@@ -80,7 +80,7 @@ class OllamaClient:
             (
                 "json_fallback",
                 "json",
-                f"{grounded_prompt}\n\nReturn only one JSON object with keys: score (1-5) and reason.",
+                f"{grounded_prompt}\n\nReturn only one JSON object with keys: result (Pass or Needs Details) and reason.",
             ),
         ]
 
@@ -112,8 +112,16 @@ class OllamaClient:
     def _call_generate(self, url: str, payload: dict) -> str:
         """Call Ollama generate API and return raw response text."""
         resp = requests.post(url, json=payload, timeout=self.REQUEST_TIMEOUT_SEC)
-        resp.raise_for_status()
-        data = resp.json()
+
+        try:
+            data = resp.json()
+        except ValueError:
+            data = {}
+
+        if not resp.ok:
+            error_msg = data.get("error", resp.text)
+            raise LLMError(f"HTTP {resp.status_code}: {error_msg}")
+
         return str(data.get("response", "")).strip()
 
     @staticmethod
@@ -141,7 +149,9 @@ class OllamaClient:
         """Yield likely JSON snippets from a model response."""
         candidates = [raw.strip()]
 
-        fenced = re.findall(r"```(?:json)?\s*([\s\S]*?)\s*```", raw, flags=re.IGNORECASE)
+        fenced = re.findall(
+            r"```(?:json)?\s*([\s\S]*?)\s*```", raw, flags=re.IGNORECASE
+        )
         candidates.extend(chunk.strip() for chunk in fenced)
 
         start = raw.find("{")

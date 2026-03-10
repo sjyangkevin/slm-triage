@@ -1,6 +1,5 @@
 import logging
 import os
-from typing import Optional
 
 log = logging.getLogger("triage.prompt")
 
@@ -36,28 +35,21 @@ class PromptBuilder:
 
     def build_triage_prompt(
         self,
-        guidelines: str,
         title: str,
         body: str,
         author: str,
         event_type: str,
-        has_tests: Optional[bool] = None,
-        file_count: Optional[int] = None,
     ) -> str:
         """Build a complete triage prompt from submission metadata.
 
-        Assemble the submission info block (with optional PR file
-        statistics) and render the ``triage.txt`` template.
+        Assemble the submission info block and render the
+        ``triage.txt`` template.
 
         Args:
-            guidelines: Raw text of the project's contribution guidelines.
             title: Submission title.
             body: Submission description / body text.
             author: GitHub username of the submission author.
             event_type: ``"pull_request"`` or ``"issue"``.
-            has_tests: Whether the PR modifies test files (``None`` for
-                issues).
-            file_count: Number of files changed (``None`` for issues).
 
         Returns:
             A fully rendered prompt string ready for the LLM.
@@ -67,38 +59,32 @@ class PromptBuilder:
             body=body,
             author=author,
             event_type=event_type,
-            has_tests=has_tests,
-            file_count=file_count,
+        )
+        template_file = (
+            "triage_pr.txt" if event_type == "pull_request" else "triage_issue.txt"
         )
         return self.render(
-            "triage.txt",
-            guidelines=guidelines,
+            template_file,
             event_type=event_type,
             submission_info=submission_info,
         )
 
-    def build_reply_message(self, author: str, reason: str, score: int) -> str:
-        """Render the automated reply message for low-scoring submissions.
+    def build_reply_message(self, author: str, reason: str, result: str) -> str:
+        """Render the automated reply message for failing submissions.
 
         Args:
             author: GitHub username of the submission author.
             reason: The explanation provided by the LLM.
-            score: The 1-5 triage score.
+            result: The string result ("Needs Details").
 
         Returns:
             The fully formatted Markdown comment ready to be posted.
         """
-        assessment = (
-            "Potential spam, low-effort, or AI-generated content detected."
-            if score == 1
-            else "Submission lacks required details or context."
-        )
         return self.render(
             "reply.txt",
             author=author,
             reason=reason,
-            score=score,
-            assessment=assessment,
+            result=result,
         )
 
     @staticmethod
@@ -107,8 +93,6 @@ class PromptBuilder:
         body: str,
         author: str,
         event_type: str,
-        has_tests: Optional[bool] = None,
-        file_count: Optional[int] = None,
     ) -> str:
         """Assemble the submission metadata block."""
         info = f"Author: {author}\nTitle: {title}\nDescription:\n{body}"

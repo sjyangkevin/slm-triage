@@ -1,4 +1,3 @@
-import fnmatch
 import json
 import logging
 import os
@@ -30,9 +29,6 @@ class TriageAction:
         self.repository = os.environ.get("GITHUB_REPOSITORY", "")
 
         # Action inputs forwarded as env vars by action.yml.
-        self.guidelines_file = os.environ.get("INPUT_GUIDELINES_FILE", "AGENTS.md")
-        self.test_file_pattern = os.environ.get("INPUT_TEST_FILE_PATTERN", "test_*")
-        self.score_threshold = int(os.environ.get("INPUT_SCORE_THRESHOLD", "2"))
         self.review_label = os.environ.get("INPUT_REVIEW_LABEL", "needs-details")
         actions_str = os.environ.get("INPUT_ACTIONS", "comment,label")
         self.actions = [a.strip().lower() for a in actions_str.split(",") if a.strip()]
@@ -42,6 +38,7 @@ class TriageAction:
         self.llm = OllamaClient(
             model=os.environ.get("OLLAMA_MODEL", "phi3"),
             base_url=os.environ.get("OLLAMA_URL", "http://localhost:11434"),
+            think=os.environ.get("OLLAMA_THINK", "false").lower() == "true",
         )
         self.prompt_builder = PromptBuilder()
         self.dry_run = dry_run
@@ -65,24 +62,11 @@ class TriageAction:
         body = event_data.get("body") or "No description provided."
         author = event_data.get("user", {}).get("login", "unknown")
 
-        guidelines = self.github.fetch_guidelines(self.repository, self.guidelines_file)
-
-        # Gather lightweight PR metadata for context.
-        has_tests = None
-        file_count = None
-        if is_pr:
-            files = self.github.fetch_pr_files(self.repository, number)
-            has_tests = self._matches_test_pattern(files)
-            file_count = len(files)
-
         prompt = self.prompt_builder.build_triage_prompt(
-            guidelines=guidelines,
             title=title,
             body=body,
             author=author,
             event_type="pull_request" if is_pr else "issue",
-            has_tests=has_tests,
-            file_count=file_count,
         )
         log.info("Sending prompt to local LLM (%s)…", self.llm.model)
         try:
@@ -91,29 +75,28 @@ class TriageAction:
             log.error("%s", exc)
             sys.exit(1)
 
-        score = int(result["score"])
+        triage_result = result["result"]
         reason = result["reason"]
-        log.info("Score: %d/5 — %s", score, reason)
+        log.info("Result: %s — %s", triage_result, reason)
 
-        if score <= self.score_threshold:
-            self._apply_actions(number, author, score, reason, is_pr=is_pr)
+        if triage_result == "Needs Details":
+            self._apply_actions(number, author, triage_result, reason, is_pr=is_pr)
 
         return {
             "number": number,
             "event_type": "pull_request" if is_pr else "issue",
-            "score": score,
+            "result": triage_result,
             "reason": reason,
-            "would_apply_actions": score <= self.score_threshold,
+            "would_apply_actions": triage_result == "Needs Details",
         }
 
     def _apply_actions(
-        self, number: int, author: str, score: int, reason: str, *, is_pr: bool
+        self, number: int, author: str, triage_result: str, reason: str, *, is_pr: bool
     ) -> None:
         """Apply configured actions to a submission that needs more details."""
         log.info(
-            "Score (%d) is at or below threshold (%d) — applying actions: %s",
-            score,
-            self.score_threshold,
+            "Result (%s) is Needs Details — applying actions: %s",
+            triage_result,
             self.actions,
         )
 
@@ -126,7 +109,7 @@ class TriageAction:
             sys.exit(1)
 
         msg = self.prompt_builder.build_reply_message(
-            author=author, reason=reason, score=score
+            author=author, reason=reason, result=triage_result
         )
 
         for action in self.actions:
@@ -145,13 +128,6 @@ class TriageAction:
             with open(self.event_path, "r") as fh:
                 return json.load(fh)
         return {}
-
-    def _matches_test_pattern(self, file_paths: list[str]) -> bool:
-        """Check whether any filename matches the test-file glob."""
-        return any(
-            fnmatch.fnmatch(os.path.basename(p), self.test_file_pattern)
-            for p in file_paths
-        )
 
 
 if __name__ == "__main__":

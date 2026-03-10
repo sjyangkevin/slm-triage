@@ -7,7 +7,7 @@
 [![CI](https://github.com/sjyangkevin/slm-triage/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sjyangkevin/slm-triage/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/sjyangkevin/slm-triage/graph/badge.svg)](https://codecov.io/gh/sjyangkevin/slm-triage)
 
-A GitHub Action that triages incoming Issues and Pull Requests by running a small local LLM to evaluate submissions against your project's `AGENTS.md`, to help identify [AI-generated slop](https://github.com/ossf/wg-vulnerability-disclosures/issues/178).
+A GitHub Action that runs a small LLM to triage incoming issues and pull requests, helping maintainers identify low-quality submissions or [AI-generated slop](https://github.com/ossf/wg-vulnerability-disclosures/issues/178).
 
 ## The Problem
 
@@ -21,16 +21,16 @@ Identifying AI-slop requires **semantic understanding**: does this submission ac
 |---|---|---|
 | **Cost** | Per-token API fees on *every* issue/PR | Free, runs on the GitHub runner |
 | **Privacy** | Sends PRs and guidelines to a third-party | Everything stays on the runner |
-| **Capability** | Overkill for checklist-style evaluation | Right-sized for scoring and classification |
+| **Context Size** | Massive context limits that remain mostly unused | The right size for a task that requires minimal context |
 | **Infrastructure** | Requires API keys and billing setup | Zero configuration beyond the action |
 
-**SLM Triage** uses [Ollama](https://ollama.com) to run a Small Language Model directly on the GitHub Actions runner. The default model, [Phi-3 mini](https://ollama.com/library/phi3) (3.8B parameters, ~2.3GB download), fits comfortably on standard GitHub-hosted runners with a 2-core CPU and 8GB RAM, which are [free for public repositories](https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories). A typical triage prompt consists of a guidelines file and an issue or PR body, which is well within the model's context window. This makes triage a task where a small, efficient model can be good enough.
+**SLM Triage** runs a Small Language Model directly on the GitHub Actions runner using [Ollama](https://ollama.com). By default, it uses `qwen3.5:2b`, leveraging its native reasoning/thinking capabilities to run a reliable evaluation while staying well within the constraints of the standard free GitHub-hosted runner.
 
 ## Trade-offs
 
 - **Runner time:** Local inference on CPU adds roughly 1–3 minutes per run. Model weights are cached between runs to avoid redundant downloads.
 - **False positives:** SLMs can misinterpret nuance. The default behavior is to *label and comment* rather than close, keeping a human in the loop for final decisions.
-- **Depth of reasoning:** SLMs excel at procedural checks (test files included? issue template filled out?) but are not suited for deep architectural review.
+- **Depth of reasoning:** SLMs excel at procedural checks (e.g. is the reproduction context present? is the PR title descriptive?) but are not suited for deep code-level architectural review.
 
 ## Quick Start
 
@@ -66,46 +66,36 @@ jobs:
 | Input | Description | Default |
 | --- | --- | --- |
 | `github-token` | **Required.** GitHub token for API calls. | - |
-| `ollama-model` | Ollama model for inference. | `phi3` |
-| `guidelines-file` | Path to the guidelines file **in your repository**. | `AGENTS.md` |
-| `test-file-pattern` | Glob to detect test files (language-agnostic). | `test_*` |
-| `score-threshold` | Score at or below which the action acts. | `2` |
-| `actions`         | Comma-separated list of actions (`comment`,`label`,`close`). | `comment,label` |
+| `ollama-model` | Ollama model for inference. | `qwen3.5:2b` |
+| `ollama-think` | Enables reasoning tags for models that support it (e.g. `deepseek-r1`). | `true` |
+| `actions`      | Comma-separated list of actions (`comment`,`label`,`close`). | `comment,label` |
 | `review-label` | Label applied to submissions that need more info. | `needs-details` |
 
 ## How It Works
 
 1. A new Issue or PR is opened in **your** repository.
 2. The action installs Ollama and pulls a small LLM (~2 GB) on the runner. The model is cached between runs.
-3. Your guidelines file (e.g. `AGENTS.md`) is fetched from **your repository** via the GitHub REST API.
-4. The LLM scores the submission's title and description against the guidelines (1–5 scale).
-5. If the score is at or below the threshold, the action posts a comment and applies a label.
+3. The LLM evaluates the submission's Title, Body, and associated state against a static rubric determining whether it contains actionable context.
+4. If the submission is lacking (returning `Needs Details`), the action executes user-defined configuration hooks (like dropping a comment and applying a label).
 
 ## Examples
 
-**Python project** (pytest conventions):
+**Default Configuration**:
 ```yaml
 - uses: your-username/slm-triage@v1
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
-    test-file-pattern: "test_*"
 ```
 
-**JavaScript project** (Jest conventions):
+**Aggressive Auto-Close Configuration** (with DeepSeek logic enabled):
 ```yaml
 - uses: your-username/slm-triage@v1
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
-    test-file-pattern: "*.test.js"
-    guidelines-file: "CONTRIBUTING.md"
-```
-
-**Go project:**
-```yaml
-- uses: your-username/slm-triage@v1
-  with:
-    github-token: ${{ secrets.GITHUB_TOKEN }}
-    test-file-pattern: "*_test.go"
+    ollama-model: "deepseek-r1:1.5b"
+    ollama-think: "true"
+    actions: "comment,label,close"
+    review-label: "auto-spam"
 ```
 
 ## License

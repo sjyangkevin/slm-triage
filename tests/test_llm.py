@@ -43,13 +43,13 @@ def test_ask_parses_json_wrapped_in_markdown_fence():
     response = MagicMock()
     response.raise_for_status.return_value = None
     response.json.return_value = {
-        "response": '```json\n{"score": 3, "reason": "Needs tests."}\n```'
+        "response": '```json\n{"result": "Needs Details", "reason": "Needs tests."}\n```'
     }
 
     with patch("llm.requests.post", return_value=response):
         result = client.ask("prompt")
 
-    assert result == {"score": 3, "reason": "Needs tests."}
+    assert result == {"result": "Needs Details", "reason": "Needs tests."}
 
 
 def test_ask_retries_with_json_format_if_first_attempt_is_invalid():
@@ -60,12 +60,11 @@ def test_ask_retries_with_json_format_if_first_attempt_is_invalid():
     bad.json.return_value = {"response": "I cannot follow that format"}
 
     good = MagicMock()
-    good.raise_for_status.return_value = None
-    good.json.return_value = {"response": '{"score": 4, "reason": "Looks good."}'}
+    good.json.return_value = {"response": '{"result": "Pass", "reason": "Looks good."}'}
 
     with patch("llm.requests.post", side_effect=[bad, good]) as post:
         result = client.ask("prompt")
 
-    assert result == {"score": 4, "reason": "Looks good."}
+    assert result == {"result": "Pass", "reason": "Looks good."}
     assert post.call_count == 2
     assert post.call_args_list[1].kwargs["json"]["format"] == "json"

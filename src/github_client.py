@@ -25,42 +25,6 @@ class GitHubClient:
         if token:
             self._headers["Authorization"] = f"Bearer {token}"
 
-    def fetch_guidelines(self, repo: str, filepath: str) -> str:
-        """Fetch raw file content from a repository.
-
-        Use the Contents API with a raw media-type header so the
-        response body is plain text rather than base64-encoded JSON.
-
-        If the file does not exist (404), return a sensible fallback
-        string instead of raising.
-
-        Args:
-            repo: Repository in ``owner/name`` format.
-            filepath: Path to the file within the repository.
-
-        Returns:
-            The raw text content of the requested file, or a fallback
-            message when the file is not found.
-
-        Reference:
-            https://docs.github.com/en/rest/repos/contents#get-repository-content
-        """
-        url = f"{self.API_BASE}/repos/{repo}/contents/{filepath}"
-        headers = {**self._headers, "Accept": "application/vnd.github.v3.raw"}
-
-        try:
-            resp = requests.get(url, headers=headers, timeout=30)
-            resp.raise_for_status()
-            return resp.text
-        except requests.exceptions.HTTPError as exc:
-            if exc.response is not None and exc.response.status_code == 404:
-                log.warning("%s not found in repository %s.", filepath, repo)
-                return (
-                    f"No {filepath} found. Evaluate based on general "
-                    "open-source contribution best practices."
-                )
-            raise
-
     def fetch_pr_files(self, repo: str, pr_number: int) -> list[str]:
         """Return filenames changed in a pull request.
 

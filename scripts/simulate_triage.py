@@ -11,8 +11,8 @@ Usage:
 
 Examples:
     uv run scripts/simulate_triage.py myorg/myrepo 42
-    uv run scripts/simulate_triage.py myorg/myrepo 42 --guidelines AGENTS.md
-    uv run scripts/simulate_triage.py myorg/myrepo 42 --model phi3 --threshold 3
+    uv run scripts/simulate_triage.py myorg/myrepo 42 --model phi3
+    uv run scripts/simulate_triage.py myorg/myrepo 42 --model deepseek-r1 --think
 """
 
 import argparse
@@ -41,25 +41,14 @@ def main() -> None:
     parser.add_argument("repo", help="GitHub repository (e.g., curl/curl)")
     parser.add_argument("number", type=int, help="Issue or PR number")
     parser.add_argument(
-        "--guidelines",
-        default="AGENTS.md",
-        help="Path to contribution guidelines file in the repository (default: AGENTS.md)",
-    )
-    parser.add_argument(
         "--model",
-        default="phi3",
-        help="Ollama model to use (default: phi3)",
+        default="qwen3.5:2b",
+        help="Ollama model to use (default: qwen3.5:2b)",
     )
     parser.add_argument(
-        "--threshold",
-        type=int,
-        default=2,
-        help="Score at or below which the action would act (default: 2)",
-    )
-    parser.add_argument(
-        "--test-file-pattern",
-        default="test_*",
-        help="Glob pattern to detect test files (default: test_*)",
+        "--think",
+        action="store_true",
+        help="Whether the model natively supports reasoning outputs (e.g. qwen3.5:2b)",
     )
     args = parser.parse_args()
 
@@ -98,12 +87,10 @@ def main() -> None:
         # Override environment variables to emulate action.yml exactly
         os.environ["GITHUB_EVENT_PATH"] = event_path
         os.environ["GITHUB_REPOSITORY"] = args.repo
-        os.environ["INPUT_GUIDELINES_FILE"] = args.guidelines
-        os.environ["INPUT_TEST_FILE_PATTERN"] = args.test_file_pattern
-        os.environ["INPUT_SCORE_THRESHOLD"] = str(args.threshold)
         # Use default actions. Since dry_run is True, nothing will be posted.
         os.environ["INPUT_ACTIONS"] = "comment,label"
         os.environ["OLLAMA_MODEL"] = args.model
+        os.environ["OLLAMA_THINK"] = str(args.think).lower()
 
         # IMPORTANT: Import TriageAction *after* setting the environment variables,
         # so its `__init__` parses the mock values correctly.
@@ -117,7 +104,7 @@ def main() -> None:
         result = action.run()
 
         print(f"{result['event_type']} {args.repo}#{args.number}")
-        print(f"Score: {result['score']}/5")
+        print(f"Result: {result['result']}")
         print(f"Reason: {result['reason']}")
         print(
             "Would apply actions: " + ("yes" if result["would_apply_actions"] else "no")

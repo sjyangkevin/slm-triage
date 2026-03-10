@@ -2,16 +2,15 @@
 
 Hi @{author}! Thanks for taking the time to contribute to the project.
 
-Our automated triage workflow noticed that this submission might be missing some information requested in our contribution guidelines:
+Our automated triage workflow noticed that this submission might be missing some required information:
 
 > {reason}
 
-Could you please review the guidelines and update the description? A maintainer will review your submission shortly. If you believe this automated assessment is incorrect, please feel free to leave a comment explaining — false positives do happen!
+Could you please review and update the description? A maintainer will review your submission shortly. If you believe this automated assessment is incorrect, please feel free to leave a comment explaining — false positives do happen!
 
 ---
 <details>
 <summary>🔍 Maintainer Insights</summary>
 
-**Triage Score:** {score}/5
-**Assessment:** {assessment}
+**Triage Result:** {result}
 </details>
