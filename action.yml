@@ -24,6 +24,9 @@ inputs:
   actions:
     description: 'Comma-separated list of actions to take (e.g., "comment,label,close").'
     default: 'comment,label'
+  include-pr-diff:
+    description: 'Include the pull request code diff in the evaluation.'
+    default: 'true'
 
 runs:
   using: 'composite'
@@ -79,4 +82,5 @@ runs:
         OLLAMA_THINK: ${{ inputs.ollama-think }}
         INPUT_REVIEW_LABEL: ${{ inputs.review-label }}
         INPUT_ACTIONS: ${{ inputs.actions }}
+        INPUT_INCLUDE_PR_DIFF: ${{ inputs.include-pr-diff }}
       run: python ${{ github.action_path }}/src/main.py

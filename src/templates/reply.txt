@@ -1,11 +1,7 @@
-**SLM Triage Workflow**
-
 Hi @{author}! Thanks for taking the time to contribute to the project.
 
-Our automated triage workflow noticed that this submission might be missing some required information:
+The [SLM triage workflow](https://github.com/sjyangkevin/slm-triage) noticed that this {event_type} might be missing some required information:
 
 > {reason}
 
-Could you please review and update the description? A maintainer will review your submission shortly. If you believe this automated assessment is incorrect, please feel free to leave a comment explaining — false positives do happen!
-
-**Triage Result:** {result}
+Could you please review and update the {event_type} description? If you believe this automated assessment is incorrect, please feel free to leave a comment — false positives do happen!

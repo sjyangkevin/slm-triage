@@ -43,6 +43,28 @@ class GitHubClient:
         resp.raise_for_status()
         return [f["filename"] for f in resp.json()]
 
+    def fetch_pr_diff(self, repo: str, pr_number: int) -> str:
+        """Return the raw code diff for a pull request.
+
+        Args:
+            repo: Repository in ``owner/name`` format.
+            pr_number: Pull request number.
+
+        Returns:
+            The raw diff text as a string.
+
+        Reference:
+            https://docs.github.com/en/rest/pulls/pulls#get-a-pull-request
+        """
+        url = f"{self.API_BASE}/repos/{repo}/pulls/{pr_number}"
+        # Request the custom 'diff' media type
+        headers = self._headers.copy()
+        headers["Accept"] = "application/vnd.github.v3.diff"
+        
+        resp = requests.get(url, headers=headers, timeout=30)
+        resp.raise_for_status()
+        return resp.text
+
     def post_comment(self, repo: str, number: int, body: str) -> None:
         """Post a comment on an issue or pull request.
 

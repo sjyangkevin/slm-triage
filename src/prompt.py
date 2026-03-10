@@ -39,6 +39,7 @@ class PromptBuilder:
         body: str,
         author: str,
         event_type: str,
+        diff: str = "",
     ) -> str:
         """Build a complete triage prompt from submission metadata.
 
@@ -50,6 +51,7 @@ class PromptBuilder:
             body: Submission description / body text.
             author: GitHub username of the submission author.
             event_type: ``"pull_request"`` or ``"issue"``.
+            diff: Raw code diff (only applicable for pull requests).
 
         Returns:
             A fully rendered prompt string ready for the LLM.
@@ -59,6 +61,7 @@ class PromptBuilder:
             body=body,
             author=author,
             event_type=event_type,
+            diff=diff,
         )
         template_file = (
             "triage_pr.txt" if event_type == "pull_request" else "triage_issue.txt"
@@ -69,13 +72,13 @@ class PromptBuilder:
             submission_info=submission_info,
         )
 
-    def build_reply_message(self, author: str, reason: str, result: str) -> str:
+    def build_reply_message(self, author: str, reason: str, event_type: str) -> str:
         """Render the automated reply message for failing submissions.
 
         Args:
             author: GitHub username of the submission author.
             reason: The explanation provided by the LLM.
-            result: The string result ("Needs Details").
+            event_type: "pull_request" or "issue".
 
         Returns:
             The fully formatted Markdown comment ready to be posted.
@@ -84,7 +87,7 @@ class PromptBuilder:
             "reply.txt",
             author=author,
             reason=reason,
-            result=result,
+            event_type="PR" if event_type == "pull_request" else "issue",
         )
 
     @staticmethod
@@ -93,8 +96,12 @@ class PromptBuilder:
         body: str,
         author: str,
         event_type: str,
+        diff: str = "",
     ) -> str:
         """Assemble the submission metadata block."""
         info = f"Author: {author}\nTitle: {title}\nDescription:\n{body}"
+        
+        if diff:
+            info += f"\n\nFiles Changed (Diff):\n```diff\n{diff}\n```"
 
         return info

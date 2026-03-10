@@ -130,7 +130,7 @@ def test_triage_acts_if_low_score(mock_action):
 
     # Verify action taken
     mock_action.prompt_builder.build_reply_message.assert_called_once_with(
-        author="lazy_user", reason="No description.", result="Needs Details"
+        author="lazy_user", reason="No description.", event_type="pull_request"
     )
     mock_action.github.post_comment.assert_called_once_with(
         "octocat/Hello-World", 99, "mocked reply body"

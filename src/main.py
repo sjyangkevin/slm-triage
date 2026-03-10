@@ -33,6 +33,8 @@ class TriageAction:
         actions_str = os.environ.get("INPUT_ACTIONS", "comment,label")
         self.actions = [a.strip().lower() for a in actions_str.split(",") if a.strip()]
 
+        self.include_pr_diff = os.environ.get("INPUT_INCLUDE_PR_DIFF", "true").lower() == "true"
+
         # Collaborating services.
         self.github = GitHubClient(self.github_token)
         self.llm = OllamaClient(
@@ -62,12 +64,21 @@ class TriageAction:
         body = event_data.get("body") or "No description provided."
         author = event_data.get("user", {}).get("login", "unknown")
 
+        diff_text = ""
+        if is_pr and self.include_pr_diff:
+            diff_text = self.github.fetch_pr_diff(self.repository, number)
+
         prompt = self.prompt_builder.build_triage_prompt(
             title=title,
             body=body,
             author=author,
             event_type="pull_request" if is_pr else "issue",
+            diff=diff_text,
         )
+        
+        if self.dry_run:
+            log.info("=== DEBUG: Generated Prompt ===\n%s\n===============================", prompt)
+
         log.info("Sending prompt to local LLM (%s)…", self.llm.model)
         try:
             result = self.llm.ask(prompt)
@@ -109,7 +120,7 @@ class TriageAction:
             sys.exit(1)
 
         msg = self.prompt_builder.build_reply_message(
-            author=author, reason=reason, result=triage_result
+            author=author, reason=reason, event_type="pull_request" if is_pr else "issue"
         )
 
         for action in self.actions:
