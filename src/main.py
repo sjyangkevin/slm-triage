@@ -33,7 +33,9 @@ class TriageAction:
         actions_str = os.environ.get("INPUT_ACTIONS", "comment,label")
         self.actions = [a.strip().lower() for a in actions_str.split(",") if a.strip()]
 
-        self.include_pr_diff = os.environ.get("INPUT_INCLUDE_PR_DIFF", "true").lower() == "true"
+        self.include_pr_diff = (
+            os.environ.get("INPUT_INCLUDE_PR_DIFF", "true").lower() == "true"
+        )
 
         # Collaborating services.
         self.github = GitHubClient(self.github_token)
@@ -75,9 +77,12 @@ class TriageAction:
             event_type="pull_request" if is_pr else "issue",
             diff=diff_text,
         )
-        
+
         if self.dry_run:
-            log.info("=== DEBUG: Generated Prompt ===\n%s\n===============================", prompt)
+            log.info(
+                "=== DEBUG: Generated Prompt ===\n%s\n===============================",
+                prompt,
+            )
 
         log.info("Sending prompt to local LLM (%s)…", self.llm.model)
         try:
@@ -120,7 +125,9 @@ class TriageAction:
             sys.exit(1)
 
         msg = self.prompt_builder.build_reply_message(
-            author=author, reason=reason, event_type="pull_request" if is_pr else "issue"
+            author=author,
+            reason=reason,
+            event_type="pull_request" if is_pr else "issue",
         )
 
         for action in self.actions:

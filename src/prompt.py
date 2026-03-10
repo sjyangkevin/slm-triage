@@ -100,7 +100,7 @@ class PromptBuilder:
     ) -> str:
         """Assemble the submission metadata block."""
         info = f"Author: {author}\nTitle: {title}\nDescription:\n{body}"
-        
+
         if diff:
             info += f"\n\nFiles Changed (Diff):\n```diff\n{diff}\n```"
 

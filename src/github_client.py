@@ -60,7 +60,7 @@ class GitHubClient:
         # Request the custom 'diff' media type
         headers = self._headers.copy()
         headers["Accept"] = "application/vnd.github.v3.diff"
-        
+
         resp = requests.get(url, headers=headers, timeout=30)
         resp.raise_for_status()
         return resp.text
