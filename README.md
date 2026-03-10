@@ -58,7 +58,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run SLM Triage
-        uses: your-username/slm-triage@v1
+        uses: sjyangkevin/slm-triage@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
