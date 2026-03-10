@@ -21,7 +21,7 @@ Since technical "AI detection" could be challenging, an effective approach can b
 
 GitHub Copilot, or cloud-hosted LLMs can also perform this evaluation, but they might introduce barriers for open-source triage:
 
-| Barriers | Cloud LLM | SLM (Local) |
+| Barriers | LLM Services | SLM |
 |---|---|---|
 | **Cost** | Token-based API fees on every issue or PR | Free, runs on the GitHub runner |
 | **Infrastructure** | Requires API keys and billing setup | Zero configuration beyond the action |
