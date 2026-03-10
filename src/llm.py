@@ -72,7 +72,7 @@ class OllamaClient:
             "model": self.model,
             "stream": False,
             "think": self.think,
-            "options": {"temperature": 0.2},
+            "options": {"temperature": 0.0},
         }
 
         strategies = [
