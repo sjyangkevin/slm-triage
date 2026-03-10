@@ -78,6 +78,20 @@ jobs:
 3. The LLM evaluates the submission's Title, Body, and associated state against a static rubric determining whether it contains actionable context.
 4. If the submission is lacking (returning `Needs Details`), the action executes user-defined configuration hooks (like dropping a comment and applying a label).
 
+## Local Testing
+
+You can use the provided simulation script to test the triage logic locally against real, public GitHub issues or PRs without posting any automated replies:
+
+```bash
+# Basic test against an issue using the default model
+uv run scripts/simulate_triage.py apache/airflow 55351
+
+# Test using a specific model with reasoning/thinking enabled
+uv run scripts/simulate_triage.py apache/airflow 51059 --model qwen3.5:2b --think
+```
+
+*Note: If you run into strict rate limits, you can export `GITHUB_TOKEN` locally to authenticate the read-only fetch.*
+
 ## Examples
 
 **Default Configuration**:
