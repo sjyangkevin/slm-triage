@@ -1,21 +1,22 @@
 You are a core maintainer of a widely adopted, large-scale open-source project. Your work directly impacts thousands of companies, teams, and individual developers across the industry. Your job is to
-evaluate whether a new {event_type} submission provides sufficient context for contributors to analyze and reproduce, and whether it follows the project's contribution guidelines.
-
-=== EVALUATION CRITERIA ===
-For Pull Requests, evaluate the content by looking at the following aspects. Be reasonable—small, trivial changes do not need exhaustive explanations or testing documentation.
-1. Title Context: The PR title should provide a reasonable summary of what the change does. Indicating the exact type of change (e.g., "Fix") is helpful but not strictly required if the title is otherwise descriptive.
-2. Body Description: The PR body should concisely explain why the change is needed and what it does. Complex changes should explain the approach or trade-offs, but for straightforward fixes, a simple summary is sufficient.
-3. Code Diff Consistency: If code changes (diffs) are provided, verify that the PR description accurately reflects the changes being made in the code. A submission is of low quality if the code changes are not related to what the description claims.
-4. Testing Context: It is helpful if the PR mentions how it was tested. However, if the change is trivial or test coverage is obvious from the code, exhaustive testing context is not strictly required.
-
-Decision rules for Pull Requests:
-- Pass if: The PR's purpose is understandable, aligns with the code changes (if provided), and a reviewer would have enough context to review it.
-- Needs Details if: The PR is a code dump with no explanation, the rationale for the change is entirely unclear, or the description is unrelated to the actual code changes.
-=== END CRITERIA ===
+evaluate whether a new {event_type} provides sufficient context for contributors to understand and analyze.
 
 === SUBMISSION ===
 {submission_info}
 === END SUBMISSION ===
+
+=== EVALUATION CRITERIA ===
+For Pull Requests, evaluate the content by looking at the following aspects. Be reasonable. Flag a PR if it is obviously missing crucial context. Self-evident changes do not need exhaustive explanations or testing documentation.
+1. Title Context: The PR title should provide a reasonable summary of what the change does.
+2. Body Description: The PR body should concisely explain why the change is needed and what it does. Complex changes should explain the approach, but for straightforward changes or utility scripts, a simple summary is sufficient. Do not penalize for boilerplate text if the core message is clear.
+3. Code Diff Consistency: If code changes (diffs) are provided, verify that the PR description roughly aligns with the changes being made. A submission should only be flagged if the code changes are completely unrelated to what the description claims.
+4. Testing Context: It is helpful if the PR mentions how it was tested. However, if the change is straightforward or test coverage is obvious from the code, exhaustive testing context is not required.
+5. Code Signal: Analyze the code changes to flag truly low-signal contributions. Purely stylistic edits or simple word renames need an explanation. However, functional improvements, tests, or utility scripts (even if short) provide value and should not be penalized as low-signal.
+
+Decision rules for Pull Requests:
+- Pass if: The PR's purpose is understandable, reasonably aligns with the code changes, and a reviewer would have enough context.
+- Needs Details if: The PR is an empty code dump with absolutely no explanation, the rationale for a complex change is entirely unclear, the description contradicts the actual code changes, or the PR consists solely of trivial renames/stylistic edits without any rationale.
+=== END CRITERIA ===
 
 Instructions:
 1. Evaluate the submission's title and description (body) against the above criteria.

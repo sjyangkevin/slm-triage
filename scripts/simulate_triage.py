@@ -42,13 +42,13 @@ def main() -> None:
     parser.add_argument("number", type=int, help="Issue or PR number")
     parser.add_argument(
         "--model",
-        default="qwen3.5:2b",
-        help="Ollama model to use (default: qwen3.5:2b)",
+        default="gemma3",
+        help="Ollama model to use (default: gemma3)",
     )
     parser.add_argument(
         "--think",
         action="store_true",
-        help="Whether the model natively supports reasoning outputs (e.g. qwen3.5:2b)",
+        help="Whether the model natively supports reasoning outputs (e.g. deepseek-r1)",
     )
     args = parser.parse_args()
 

@@ -68,7 +68,7 @@ jobs:
 | Input | Description | Default |
 | --- | --- | --- |
 | `github-token` | **Required.** GitHub token for API calls. |  |
-| `ollama-model` | Ollama model for inference. | `qwen3.5:2b` |
+| `ollama-model` | Ollama model for inference. | `gemma3` |
 | `ollama-think` | Enables reasoning tags for models that support it. | `false` |
 | `actions`      | Comma-separated list of actions (`comment`,`label`,`close`). | `comment,label` |
 | `review-label` | Label applied to submissions that need more info. | `needs-details` |
@@ -89,7 +89,7 @@ You can use the provided simulation script to test the triage logic locally agai
 uv run scripts/simulate_triage.py <owner>/<repo> <issue-number>
 
 # Test using a specific model with reasoning/thinking enabled
-uv run scripts/simulate_triage.py <owner>/<repo> <issue-number> --model qwen3.5:2b --think
+uv run scripts/simulate_triage.py <owner>/<repo> <issue-number> --model deepseek-r1 --think
 ```
 
 *Note: If you run into strict rate limits, you can export `GITHUB_TOKEN` locally to authenticate the read-only fetch.*
