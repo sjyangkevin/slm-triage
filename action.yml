@@ -1,7 +1,6 @@
 name: 'SLM Triage'
 description: >
-  Triage incoming Issues and Pull Requests by running a small local LLM
-  that scores submissions against your project's contribution guidelines.
+  Triage incoming Issues and Pull Requests by running a small language model (SLM).
 author: 'Kevin Yang'
 
 branding:
