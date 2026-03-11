@@ -1,6 +1,6 @@
 [project]
 name = "slm-triage"
-version = "1.0.0"
+version = "1.0.1"
 description = "A GitHub Action that triages Issues and PRs using a local Small Language Model."
 readme = "README.md"
 license = "Apache-2.0"
