@@ -14,7 +14,7 @@ inputs:
     required: true
   ollama-model:
     description: 'Ollama model to use for inference.'
-    default: 'qwen3.5:2b'
+    default: 'gemma3'
   ollama-think:
     description: 'Set to "true" if the model natively supports reasoning outputs (e.g. deepseek-r1).'
     default: 'false'
